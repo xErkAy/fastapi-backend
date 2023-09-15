@@ -44,7 +44,7 @@ async def get_shops(city: str | None = None, street: str | None = None, open: st
 
     if open is not None:
         now = datetime.now().time()
-        if open in ['1', 'true', 'True']:
+        if open in ['1', 'true', 'True', '']:
             queryset = await Shop.filter(open_time__lte=now, close_time__gte=now, **filter_args)
         else:
             queryset = await Shop.filter(
