@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import FastAPI, Body
 from pydantic_core import ValidationError
 from tortoise import Tortoise
+from tortoise.expressions import Q
 
 from utils import filter_city_street
 from exceptions import ExceptionWithMessage, ValidationException
@@ -32,20 +33,31 @@ async def get_streets_by_city(city_id: int):
 
 
 @app.get('/api/shop/')
-async def get_shops(city: int | None = None, street: str | None = None, open: str | None = None):
+async def get_shops(city: str | None = None, street: str | None = None, open: str | None = None):
 
-    queryset = await Shop.all()
-
-    print(type(queryset))
+    filter_args = {}
+    if city is not None:
+        if city.isdigit():
+            filter_args['city_id'] = city
+        else:
+            filter_args['city__name__icontains'] = city
+    if street is not None:
+        if street.isdigit():
+            filter_args['street_id'] = street
+        else:
+            filter_args['street__name__icontains'] = street
 
     if open is not None:
         now = datetime.now().time()
         if open in ['1', 'true', 'True']:
-            queryset = await queryset.filter(open_time__lte=now, close_time__gte=now)
+            queryset = await Shop.filter(open_time__lte=now, close_time__gte=now, **filter_args)
         else:
-            queryset = await queryset.filter(open_time__gte=now, close_time__lte=now)
-
-    return await filter_city_street(queryset, city=city, street=street)
+            queryset = await Shop.filter(
+                Q(open_time__gte=now, close_time__lte=now) | Q(open_time__gte=now, close_time__gte=now, **filter_args)
+            )
+        return queryset
+    else:
+        return await Shop.filter(**filter_args)
 
 
 @app.post('/api/shop/')
