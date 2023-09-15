@@ -5,16 +5,11 @@ from pydantic_core import ValidationError
 from tortoise import Tortoise
 from tortoise.expressions import Q
 
-from utils import filter_city_street
 from exceptions import ExceptionWithMessage, ValidationException
 from models import City, Street, Shop
 from serializers import (
-    CitySerializer,
     CitySerializer_List,
-    StreetSerializer,
     StreetSerializer_List,
-    ShopSerializer,
-    ShopSerializer_List,
     RequestShopSerializer
 )
 from os import environ as env
